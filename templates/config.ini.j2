@@ -1,0 +1,19 @@
+[mastodon]
+instance_url = {{ item.value.mastodon_url }}
+user_credentials = /config/user.cred
+client_credentials = /config/client.cred
+toot_visibility = {{ item.value.toot_visibility | default('public') }}
+
+[cache]
+cachefile = /cache/cache.db
+cache_limit = 1000
+
+[lock]
+lock_file = /run/feed2toot/{{ item.key }}/feed2toot.lock
+lock_timeout = 3600
+
+[rss]
+uri = {{ item.value.rss_uri }}
+toot = {link} {title}
+
+# vim: ft=dosini.jinja2:

@@ -1,0 +1,56 @@
+# Ansible managed
+
+[Unit]
+Description = feed2toot rss to fediverse reposter for %i
+Requires = network-online.target
+
+[Service]
+Type = oneshot
+ExecStart = /usr/bin/feed2toot -c /config/config.ini
+DynamicUser = true
+CacheDirectory = feed2toot/%i
+RuntimeDirectory = feed2toot/%i
+SyslogIdentifier = feed2toot/%i
+
+CPUAccounting = true
+CPUQuota = 10%
+MemoryAccounting = true
+MemoryLow = 20M
+MemoryHigh = 95M
+MemoryMax = 100M
+TasksAccounting = true
+TasksMax = 5
+
+BindReadOnlyPaths = /etc/opt/feed2toot/%i:/config
+BindPaths = /var/cache/feed2toot/%i:/cache
+
+# Paranoid sandboxing, as usual.
+# If I couldn't get good grades in school, at least I can
+# get good grades on `systemd-analyze security`.
+CapabilityBoundingSet=
+LockPersonality=true
+MemoryDenyWriteExecute=true
+NoNewPrivileges=true
+PrivateDevices=true
+PrivateTmp=true
+PrivateUsers=true
+ProtectControlGroups=true
+ProtectHome=true
+ProtectKernelModules=true
+ProtectKernelTunables=true
+ProtectSystem=strict
+RemoveIPC=true
+RestrictAddressFamilies=AF_INET
+RestrictNamespaces=true
+RestrictRealtime=true
+SystemCallArchitectures=native
+SystemCallFilter=@system-service
+SystemCallFilter=~@privileged @resources
+ProtectProc=noaccess
+ProtectHostname=true
+ProtectKernelLogs=true
+ProtectClock=true
+ProcSubset=pid
+UMask=0077
+
+# vim: ft=dosini.jinja2:

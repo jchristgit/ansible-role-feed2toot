@@ -1,0 +1,13 @@
+# Ansible managed
+
+[Unit]
+Description = feed2toot rss feed to fediverse reposter for %i
+
+[Timer]
+OnCalendar = {{ feed2toot_timer_schedule }}
+RandomizedDelaySec = 15m
+
+[Install]
+WantedBy = timers.target
+
+# vim: ft=dosini.jinja2:

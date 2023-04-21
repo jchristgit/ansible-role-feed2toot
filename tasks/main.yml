@@ -1,0 +1,96 @@
+---
+- name: install feed2toot and pexpect
+  package:
+    name:
+      - feed2toot
+      - python3-pexpect
+    state: present
+  tags:
+    - role::feed2toot
+
+- name: create systemd template units
+  template:
+    src: "{{ item }}.j2"
+    dest: /etc/systemd/system/{{ item }}
+    owner: root
+    group: root
+    mode: 0444
+  with_items:
+    - feed2toot@.service
+    - feed2toot@.timer
+  tags:
+    - role::feed2toot
+  register: systemd_service
+
+- name: create base configuration directory
+  file:
+    path: /etc/opt/feed2toot/
+    state: directory
+    owner: root
+    group: root
+    mode: 0500
+  tags:
+    - role::feed2toot
+
+- name: create configuration directories
+  file:
+    path: /etc/opt/feed2toot/{{ item }}
+    state: directory
+    owner: root
+    group: root
+    mode: 0555
+  with_items: "{{ feed2toot_configurations }}"
+  tags:
+    - role::feed2toot
+
+- name: template configuration files
+  template:
+    src: config.ini.j2
+    dest: /etc/opt/feed2toot/{{ item.key }}/config.ini
+    owner: root
+    group: root
+    mode: 0444
+  loop_control:
+    label: "{{ item.key }}"
+  with_items: "{{ feed2toot_configurations | dict2items }}"
+  tags:
+    - role::feed2toot
+
+- name: set up credentials
+  ansible.builtin.expect:
+    command: >
+      /usr/bin/register_feed2toot_app
+        --name "feed2toot on {{ ansible_fqdn }}"
+        --client-credentials-file client.cred
+        --user-credentials-file user.cred
+    responses:
+      Mastodon instance URL: "{{ item.value.mastodon_url }}"
+      Mastodon login: "{{ item.value.mastodon_email }}"
+      Mastodon password: "{{ item.value.mastodon_password }}"
+    creates: /etc/opt/feed2toot/{{ item.key }}/client.cred
+    chdir: /etc/opt/feed2toot/{{ item.key }}
+    timeout: 5
+  loop_control:
+    label: "{{ item.key }}"
+  when:
+    - item.value.mastodon_email is defined
+    - item.value.mastodon_password is defined
+  with_items: "{{ feed2toot_configurations | dict2items }}"
+  tags:
+    - role::feed2toot
+
+- name: enable the systemd timers
+  systemd:
+    name: feed2toot@{{ item.key }}.timer
+    state: started
+    enabled: true
+    daemon_reload: "{{ systemd_service is changed and (item.key == (feed2toot_configurations|list)[0]) }}"
+  loop_control:
+    label: "{{ item.key }}"
+  when:
+    # We may not have credentials without these, and just cause error starts.
+    - item.value.mastodon_email is defined
+    - item.value.mastodon_password is defined
+  tags:
+    - role::feed2toot
+  with_items: "{{ feed2toot_configurations | dict2items }}"
