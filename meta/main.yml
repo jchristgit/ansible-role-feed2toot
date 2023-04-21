@@ -1,0 +1,19 @@
+---
+galaxy_info:
+  role_name: feed2toot
+  author: jchristgit
+  description: Deploys feed2toot to Debian systems
+  license: ISC
+  min_ansible_version: 2.10
+  platforms:
+    - name: Debian
+      versions:
+        - all
+    - name: Ubuntu
+      versions:
+        - all
+  galaxy_tags:
+    - feed2toot
+    - mastodon
+    - rss
+dependencies: []
