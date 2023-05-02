@@ -60,7 +60,7 @@
   ansible.builtin.expect:
     command: >
       /usr/bin/register_feed2toot_app
-        --name "feed2toot on {{ ansible_fqdn }}"
+        --name feed2toot
         --client-credentials-file client.cred
         --user-credentials-file user.cred
     responses:
